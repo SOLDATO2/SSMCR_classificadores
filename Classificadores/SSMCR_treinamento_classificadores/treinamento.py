@@ -8,7 +8,7 @@
 
 #########################
 import pandas as pd
-dados = pd.read_csv('Classificadores\\SSMCR_treinamento_classificadores\\s41598-020-73558-3_sepsis_survival_primary_cohort.csv', sep=',')
+dados = pd.read_csv('SSMCR_classificadores\\Classificadores\\SSMCR_treinamento_classificadores\\s41598-020-73558-3_sepsis_survival_primary_cohort.csv', sep=',')
 
 
 
@@ -193,24 +193,14 @@ from pprint import pprint
 #1. Quando a avaliação é realizada com cross_validation, dispensa-se o split da base
 from sklearn.ensemble import RandomForestClassifier
 #Construir um objeto para responder o indutor
-forest = RandomForestClassifier(max_depth = 60, max_features = 'auto', n_estimators = 200) # Construir o objeto indutor
+forest = RandomForestClassifier(max_depth = 60, max_features = None, n_estimators = 200) # Construir o objeto indutor
 
 #2.Treinar o modelo
 #2.1 Requisitos:
 #    a) dados normalizados e balanceados
 #    b) dados segmentados em atributos e classificados
 sepsis_forest_cross_com_acuracia = forest.fit(dados_atributos_b, dados_classes_b)
-"""
-                                    ^^^^^^^^
-Exception has occurred: InvalidParameterError
-The 'max_features' parameter of RandomForestClassifier must be an int in the range [1, inf), a float in the range (0.0, 1.0], a str among {'sqrt', 'log2'} or None. Got 'auto' instead.
-  File "C:\Users\Felip\Documents\GitHub\SSMCR_classificadores\SSMCR_classificadores\Classificadores\SSMCR_treinamento_classificadores\treinamento.py", line 202, in <module>
-    sepsis_forest_cross_com_acuracia = forest.fit(dados_atributos_b, dados_classes_b)
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-sklearn.utils._param_validation.InvalidParameterError: The 'max_features' parameter of RandomForestClassifier must be an int in the range [1, inf), a float in the range (0.0, 1.0], a str among {'sqrt', 'log2'} or None. Got 'auto' instead.
 
-
-"""
 
 #3. Avaliar a acuracia com cross-validation
 from sklearn.model_selection import cross_validate, cross_val_score
@@ -228,7 +218,7 @@ print(scores_cross['test_recall_macro'].mean())
 from pickle import dump
 dump(sepsis_forest, open('sepsis_forest_class.pkl', 'wb'))
 dump(sepsis_forest_cross, open('sepsis_forest_cross.pkl', 'wb'))
-dump(sepsis_forest_cross_com_acuracia, open('sepsis_forest_cross.pkl', 'wb'))
+dump(sepsis_forest_cross_com_acuracia, open('sepsis_forest_cross_com_acuracia.pkl', 'wb'))
 
 
 
