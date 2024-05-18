@@ -13,7 +13,7 @@ dados = pd.read_csv('SSMCR_classificadores\\Classificadores\\SSMCR_treinamento_c
 
 
 dados.rename(columns={'sex_0male_1female': 'sex'}, inplace=True)
-#dados['sex'] = dados['sex'].map({0: 'Male', 1: 'Female'})
+dados['sex'] = dados['sex'].map({0: 'Male', 1: 'Female'})
 
 dados.rename(columns={'hospital_outcome_1alive_0dead': 'hospital_outcome'}, inplace=True)
 dados['hospital_outcome'] = dados['hospital_outcome'].map({0: 'Dead', 1: 'Alive'}) 
@@ -32,7 +32,7 @@ modelo_normalizador = normalizador.fit(dados_numericos)
 dump(modelo_normalizador, open('modelo_normalizador.pkl', 'wb'))
 
 
-#dados_categoricos_normalizados = pd.get_dummies(data=dados_categoricos, dtype=int)
+dados_categoricos_normalizados = pd.get_dummies(data=dados_categoricos, dtype=int)
 #print(dados_categoricos_normalizados)
 dados_numericos_normalizados = modelo_normalizador.fit_transform(dados_numericos)
 
@@ -40,9 +40,16 @@ dados_numericos_normalizados = modelo_normalizador.fit_transform(dados_numericos
 dados_numericos_normalizados = pd.DataFrame(data = dados_numericos_normalizados, columns = ['age_years', 'episode_number'])
 
 #juntar com os dados categoricos normalizados
-#dados_normalizados_final = dados_numericos_normalizados.join(dados_categoricos_normalizados, how = 'left')
-dados_normalizados_final = dados_numericos_normalizados.join(dados_categoricos, how = 'left')
+dados_normalizados_final = dados_numericos_normalizados.join(dados_categoricos_normalizados, how = 'left')
+#dados_normalizados_final = dados_numericos_normalizados.join(dados_categoricos, how = 'left')
 dados_normalizados_final = dados_normalizados_final.join(dados_classificadores, how = 'left')
+
+
+
+with open('SSMCR_classificadores\\Classificadores\\SSMCR_treinamento_classificadores\\sepsis_colunas_normalizadas.csv', 'w') as file: 
+  colunas_para_salvar = dados_normalizados_final.columns[:-1]
+  file.write(','.join(colunas_para_salvar))
+
 
 print(dados_normalizados_final)
 
@@ -83,6 +90,8 @@ dados_atributos_b = dados_finais.drop(columns=['hospital_outcome'])
 dados_classe_b = dados_finais['hospital_outcome']
 
 atributos_train, atributos_test, classes_train, classes_test = train_test_split(dados_atributos_b, dados_classe_b, test_size = 0.3)
+
+print(atributos_test)
 
 forest = RandomForestClassifier()
 
