@@ -149,12 +149,18 @@ print(scores_cross['test_recall_macro'].mean())
 #Matriz de contingencia
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
-cm = confusion_matrix(classes_test, Classe_test_predict)
+#cm = confusion_matrix(classes_test, Classe_test_predict)
+cm=confusion_matrix(classes_test, Classe_test_predict,labels=sepsis_forest_cross.classes_)
 #plot_confusion_matrix(fertility_tree, atributos_test, classes_test)
 #Matriz de contingência modo gráfico
-grafico = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=sepsis_forest.classes_)
+#grafico = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=sepsis_forest.classes_)
 
-grafico.plot() #Não está plotando o grafico... 
+#grafico.plot() #Não está plotando o grafico... 
+
+grafico = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=sepsis_forest_cross.classes_)
+grafico.plot()
+#plt.show(grafico)  TypeError: _Backend.show() takes 1 positional argument but 2 were given
+grafico.figure_.savefig("confusion_matrix.png")
 
 
 
