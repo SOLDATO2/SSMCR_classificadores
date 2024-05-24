@@ -23,7 +23,6 @@ def receber_informacoes():
             'age_years': nova_instancia[0],
             'sex_0male_1female': nova_instancia[1],
             'episode_number': nova_instancia[2],
-            #'hospital_outcome_1alive_0dead': nova_instancia[3]
         }
 
     # Convertendo para DataFrame
@@ -46,7 +45,7 @@ def receber_informacoes():
 
 
     #Normalizado min max
-    normalizador = load(open('SSMCR_classificadores\\modelo_normalizador.pkl', 'rb'))
+    normalizador = load(open('modelo_normalizador.pkl', 'rb'))
     dados_numericos_normalizados = normalizador.fit_transform(dados_numericos)
 
     dados_numericos_normalizados = pd.DataFrame(data = dados_numericos_normalizados, columns = ['age_years', 'episode_number'])
@@ -67,7 +66,7 @@ def receber_informacoes():
 
 
 
-    with open('SSMCR_classificadores\\Classificadores\\SSMCR_treinamento_classificadores\\sepsis_colunas_normalizadas.csv', 'r') as file:
+    with open('sepsis_colunas_normalizadas.csv', 'r') as file:
         # Ler a primeira linha do arquivo, que contém os nomes das colunas separados por vírgulas
         columns = file.readline().strip().split(',')
 
@@ -86,18 +85,11 @@ def receber_informacoes():
 
 
 
-    forest = load(open('SSMCR_classificadores\\sepsis_forest_class.pkl', 'rb'))
-    atributos_predict_forest_class = forest.predict(nova_instancia_final_normalizada_ORGANIZADA_df) # ['Alive']
-    atributos_predict_forest_class_PROBA = forest.predict_proba(nova_instancia_final_normalizada_ORGANIZADA_df) # [[0.91400516 0.08599484]] ?
-    
-    forest_cross = load(open('SSMCR_classificadores\\sepsis_forest_cross.pkl', 'rb'))
-    atributos_predict_forest_cross = forest_cross.predict(nova_instancia_final_normalizada_ORGANIZADA_df) #['Alive']
-    atributos_predict_forest_cross_PROBA = forest_cross.predict_proba(nova_instancia_final_normalizada_ORGANIZADA_df) # [[0.91148461 0.08851539]]
-    
-    forest_cross_com_acuracia = load(open('SSMCR_classificadores\\sepsis_forest_cross_com_acuracia.pkl', 'rb'))
-    atributos_predict_forest_cross_com_acuracia = forest_cross_com_acuracia.predict(nova_instancia_final_normalizada_ORGANIZADA_df) # ['Alive']
-    atributos_predict_forest_cross_com_acuracia_PROBA = forest_cross_com_acuracia.predict_proba(nova_instancia_final_normalizada_ORGANIZADA_df) # [[0.91110789 0.08889211]]
 
+    
+    forest = load(open('sepsis_forest_cross_com_acuracia.pkl', 'rb'))
+    atributos_predict_forest_cross_com_acuracia = forest.predict(nova_instancia_final_normalizada_ORGANIZADA_df) # ['Alive']
+    atributos_predict_forest_cross_com_acuracia_PROBA = forest.predict_proba(nova_instancia_final_normalizada_ORGANIZADA_df) # [[0.91110789 0.08889211]]
 
     print(atributos_predict_forest_cross_com_acuracia)
     print(atributos_predict_forest_cross_com_acuracia_PROBA)
@@ -147,10 +139,6 @@ def receber_informacoes():
 
     dados = {
         "informacoes_entrevistado": informacoes_entrevistado,
-        "atributos_predict_forest_class": atributos_predict_forest_class[0],
-        "atributos_predict_forest_class_PROBA": atributos_predict_forest_class_PROBA[0].tolist(),
-        "atributos_predict_forest_cross" : atributos_predict_forest_cross[0],
-        "atributos_predict_forest_cross_PROBA": atributos_predict_forest_cross_PROBA[0].tolist(),
         "atributos_predict_forest_cross_com_acuracia": atributos_predict_forest_cross_com_acuracia[0],
         "atributos_predict_forest_cross_com_acuracia_PROBA": atributos_predict_forest_cross_com_acuracia_PROBA[0].tolist()
         

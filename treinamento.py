@@ -8,7 +8,7 @@
 
 #########################
 import pandas as pd
-dados = pd.read_csv('SSMCR_classificadores\\Classificadores\\SSMCR_treinamento_classificadores\\s41598-020-73558-3_sepsis_survival_primary_cohort.csv', sep=',')
+dados = pd.read_csv('SSMCR_classificadores\\s41598-020-73558-3_sepsis_survival_primary_cohort.csv', sep=',')
 
 
 
@@ -29,7 +29,7 @@ from pickle import dump
 from sklearn import preprocessing
 normalizador = preprocessing.MinMaxScaler()
 modelo_normalizador = normalizador.fit(dados_numericos)
-dump(modelo_normalizador, open('modelo_normalizador.pkl', 'wb'))
+dump(modelo_normalizador, open('SSMCR_classificadores\\modelo_normalizador.pkl', 'wb'))
 
 
 dados_categoricos_normalizados = pd.get_dummies(data=dados_categoricos, dtype=int)
@@ -46,7 +46,7 @@ dados_normalizados_final = dados_normalizados_final.join(dados_classificadores, 
 
 
 
-with open('SSMCR_classificadores\\Classificadores\\SSMCR_treinamento_classificadores\\sepsis_colunas_normalizadas.csv', 'w') as file: 
+with open('SSMCR_classificadores\\sepsis_colunas_normalizadas.csv', 'w') as file: 
   colunas_para_salvar = dados_normalizados_final.columns[:-1]
   file.write(','.join(colunas_para_salvar))
 
@@ -73,8 +73,8 @@ dados_atributos_b, dados_classes_b = resampler.fit_resample(dados_atributos, dad
 from collections import Counter
 classes_count = Counter(dados_classes_b)
 classes_count_n = Counter(dados_classes)
-print("Classes antes do balanceamento: ", classes_count_n)
-print("Classes depois do balanceamento: ", classes_count)
+print("Classes pre balanceamento: ", classes_count_n)
+print("Classes pos balanceamento: ", classes_count)
 
 dados_atributos_b = pd.DataFrame(dados_atributos_b)
 dados_classes_b = pd.DataFrame(dados_classes_b)
@@ -82,87 +82,6 @@ dados_finais = dados_atributos_b.join(dados_classes_b, how ='left')
 print(dados_finais)
 
 ###########################################################################################
-
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-
-dados_atributos_b = dados_finais.drop(columns=['hospital_outcome'])
-dados_classe_b = dados_finais['hospital_outcome']
-
-atributos_train, atributos_test, classes_train, classes_test = train_test_split(dados_atributos_b, dados_classe_b, test_size = 0.3)
-
-print(atributos_test)
-
-forest = RandomForestClassifier()
-
-#Treinar o modelo
-sepsis_forest = forest.fit(atributos_train, classes_train)
-
-#Pretestar o modelo
-Classe_test_predict = sepsis_forest.predict(atributos_test)
-
-#Comparar as classes inferidas no teste com as classes preservadas
-
-i = 0
-for i in range(0, len(classes_test)):
-  print(classes_test.iloc[i][0], ' - ', Classe_test_predict[i])
-
-  #Acuracia global do modelo
-from sklearn import metrics
-print('Acuracia global (provisoria):', metrics.accuracy_score(classes_test, Classe_test_predict))
-
-
-
-
-#
-
-
-
-
-#Avaliação da acuracia com cross-validation
-from pprint import pprint
-
-#1. Quando a avaliação é realizada com cross_validation, dispensa-se o split da base
-from sklearn.ensemble import RandomForestClassifier
-#Construir um objeto para responder o indutor
-forest = RandomForestClassifier() # Construir o objeto indutor
-
-#2.Treinar o modelo
-#2.1 Requisitos:
-#    a) dados normalizados e balanceados
-#    b) dados segmentados em atributos e classificados
-sepsis_forest_cross = forest.fit(dados_atributos_b, dados_classes_b)
-
-#3. Avaliar a acuracia com cross-validation
-from sklearn.model_selection import cross_validate, cross_val_score
-scoring = ['precision_macro', 'recall_macro']
-scores_cross = cross_validate(forest, dados_atributos_b, dados_classes_b, cv=10, scoring=scoring)
-#print(scores_cross)
-print(scores_cross['test_precision_macro'].mean())
-print(scores_cross['test_recall_macro'].mean())
-
-
-
-
-
-
-#Matriz de contingencia
-import matplotlib.pyplot as plt
-from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
-#cm = confusion_matrix(classes_test, Classe_test_predict)
-cm=confusion_matrix(classes_test, Classe_test_predict,labels=sepsis_forest_cross.classes_)
-#plot_confusion_matrix(fertility_tree, atributos_test, classes_test)
-#Matriz de contingência modo gráfico
-#grafico = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=sepsis_forest.classes_)
-
-#grafico.plot() #Não está plotando o grafico... 
-
-grafico = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=sepsis_forest_cross.classes_)
-grafico.plot()
-#plt.show(grafico)  TypeError: _Backend.show() takes 1 positional argument but 2 were given
-grafico.figure_.savefig("confusion_matrix.png")
-
-
 
 
 import numpy as np
@@ -176,7 +95,8 @@ bootstrap = [True, False]
 
 from sklearn.model_selection import GridSearchCV
 from pprint import pprint
-
+from sklearn.ensemble import RandomForestClassifier
+forest = RandomForestClassifier()
 """
 random_grid = {'n_estimators': n_estimators,
                'max_features': max_features,
@@ -195,11 +115,15 @@ random_grid = {'n_estimators': n_estimators,
 pprint(random_grid)
 rf_grid = GridSearchCV(forest, random_grid, refit=True, verbose=2)
 
-#grid = GridSearchCV(SVC(), param_grid, refit=True, verbose=2)
 
 rf_grid.fit(dados_atributos_b, dados_classes_b)
 
 print(*rf_grid.best_params_)
+
+max_depth_param = rf_grid.best_params_["max_depth"]
+max_features = rf_grid.best_params_["max_features"]
+n_estimators = rf_grid.best_params_["n_estimators"]
+
 
 
 #Avaliação da acuracia com cross-validation
@@ -208,7 +132,7 @@ from pprint import pprint
 #1. Quando a avaliação é realizada com cross_validation, dispensa-se o split da base
 from sklearn.ensemble import RandomForestClassifier
 #Construir um objeto para responder o indutor
-forest = RandomForestClassifier(max_depth = 60, max_features = None, n_estimators = 200) # Construir o objeto indutor
+forest = RandomForestClassifier(max_depth = max_depth_param, max_features = max_features, n_estimators = n_estimators) # Construir o objeto indutor
 
 #2.Treinar o modelo
 #2.1 Requisitos:
@@ -218,7 +142,7 @@ sepsis_forest_cross_com_acuracia = forest.fit(dados_atributos_b, dados_classes_b
 
 
 #3. Avaliar a acuracia com cross-validation
-from sklearn.model_selection import cross_validate, cross_val_score
+from sklearn.model_selection import cross_validate
 scoring = ['precision_macro', 'recall_macro']
 scores_cross = cross_validate(forest, dados_atributos_b, dados_classes_b, cv=10, scoring=scoring)
 #print(scores_cross)
@@ -228,12 +152,10 @@ print(scores_cross['test_recall_macro'].mean())
 
 
 #############################################
-##############SALVANDO FLORESTAS#############
+##############SALVANDO FLORESTA##############
 #############################################
 from pickle import dump
-dump(sepsis_forest, open('sepsis_forest_class.pkl', 'wb'))
-dump(sepsis_forest_cross, open('sepsis_forest_cross.pkl', 'wb'))
-dump(sepsis_forest_cross_com_acuracia, open('sepsis_forest_cross_com_acuracia.pkl', 'wb'))
+dump(sepsis_forest_cross_com_acuracia, open('SSMCR_classificadores\\sepsis_forest_cross_com_acuracia.pkl', 'wb'))
 
 
 
